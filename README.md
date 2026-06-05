@@ -1,43 +1,43 @@
-# Auto YouTube Shorts Next Clicker
+# Auto YouTube Shorts Next
 
-A lightweight browser console script that automatically clicks the **Next** button when a YouTube Short ends — no extensions, no installs, just paste and go.
+A Chrome extension that automatically navigates to the next YouTube Short when the current one ends.
 
-## How It Works
+## Features
 
-The script listens for the `ended` event on the `<video>` element. When a Short finishes playing, it finds the next-navigation button (`#navigation-button-down` or any button with an `aria-label` containing "Next") and clicks it automatically.
+- Auto-advances to the next Short when the video is about to end (0.3s before)
+- Toggle on/off from the Chrome toolbar with a click
+- Works with YouTube's SPA navigation — no page reload needed
+- Persistent state across sessions via Chrome storage
+
+## Installation
+
+1. Download or clone this repository.
+2. Open Chrome and go to `chrome://extensions`.
+3. Enable **Developer mode** (top right).
+4. Click **Load unpacked** and select the project folder.
+5. The extension icon appears in the toolbar — red when active, grey when disabled.
 
 ## Usage
 
-1. Open [YouTube Shorts](https://www.youtube.com/shorts) in your browser.
-2. Open the browser console:
-   - **Chrome / Edge:** `F12` → Console tab
-   - **Firefox:** `F12` → Console tab
-3. Paste the contents of [click-next-script.js](click-next-script.js) and press **Enter**.
-4. Play any Short — it will auto-advance when it ends.
+Navigate to any [YouTube Short](https://www.youtube.com/shorts) — the extension kicks in automatically. Click the toolbar icon to toggle it on or off at any time.
 
-> The script stays active until you close or refresh the tab.
+## How It Works
 
-## Bookmarklet (optional)
+A background service worker listens for YouTube SPA navigation events (`webNavigation.onHistoryStateUpdated`). Each time the URL changes to a Shorts page, it injects the content script which polls every 300ms for the video's remaining time. When less than 0.3 seconds remain, it scrolls the Shorts container to the next video.
 
-Paste this as the URL of a new bookmark for one-click activation:
+## File Structure
 
-```
-javascript:(function(){const v=document.querySelector("video");v.addEventListener("ended",()=>{const btn=document.querySelector("#navigation-button-down button")||document.querySelector('[aria-label*="Next"]');if(btn)btn.click();});})();
-```
+| File | Description |
+|------|-------------|
+| `manifest.json` | Extension config (Manifest V3) |
+| `content.js` | Auto-advance logic injected into Shorts pages |
+| `background.js` | Service worker: icon drawing + SPA navigation injection |
+| `popup.html` | Toolbar popup UI |
+| `popup.js` | Toggle on/off logic |
 
 ## Browser Compatibility
 
-| Browser | Supported |
-|---------|-----------|
-| Chrome  | ✓         |
-| Edge    | ✓         |
-| Firefox | ✓         |
-| Safari  | ✓         |
-
-## Limitations
-
-- Must be re-run after a page refresh (it is not a persistent extension).
-- YouTube UI changes may break the button selector — open an issue if it stops working.
+Chrome (Manifest V3). Edge (Chromium-based) should also work.
 
 ## License
 
