@@ -72,26 +72,51 @@ function scrollToNext(v) {
 let triggeredSrc = null;
 let triggerTime = 0;
 
+// Inject immediately so the fetch wrapper is ready before the user scrolls
+if (platform !== "youtube") {
+    const s = document.createElement("script");
+    s.src = chrome.runtime.getURL("injected.js");
+    document.head.appendChild(s);
+}
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.type !== "download") return;
 
-    const v = getActiveVideo() || document.querySelector("video");
-    const src = v?.currentSrc || v?.src || null;
-
-    if (!src) {
-        sendResponse({ ok: false, error: "no_video" });
+    if (platform === "youtube") {
+        sendResponse({ ok: false, platform });
         return true;
     }
 
-    if (src.startsWith("blob:")) {
-        // YouTube Shorts uses MediaSource — blob URLs cannot be downloaded
-        sendResponse({ ok: false, error: "blob_unsupported" });
-        return true;
-    }
-
-    sendResponse({ ok: true, src });
+    getPageVideoUrl().then(url => {
+        if (url) {
+            sendResponse({ ok: true, src: url });
+        } else {
+            sendResponse({ ok: false, platform });
+        }
+    });
     return true;
 });
+
+function getPageVideoUrl() {
+    return new Promise((resolve) => {
+        let done = false;
+        const handler = (e) => {
+            if (done) return;
+            done = true;
+            window.removeEventListener("__reels_url_ready__", handler);
+            resolve(e.detail?.url || null);
+        };
+        window.addEventListener("__reels_url_ready__", handler);
+        window.dispatchEvent(new CustomEvent("__reels_request_url__"));
+
+        setTimeout(() => {
+            if (done) return;
+            done = true;
+            window.removeEventListener("__reels_url_ready__", handler);
+            resolve(null);
+        }, 2000);
+    });
+}
 
 setInterval(() => {
     if (!platformEnabled) return;
@@ -100,6 +125,7 @@ setInterval(() => {
     if (!v) return;
 
     if (v.playbackRate !== speed) v.playbackRate = speed;
+    if (v.muted) v.muted = false;
 
     const remaining = v.duration - v.currentTime;
     const now = Date.now();

@@ -70,25 +70,27 @@ dlBtn.addEventListener("click", () => {
                 return;
             }
             if (!res.ok) {
-                if (res.error === "blob_unsupported") {
-                    setDlState("error", "Τα YouTube Shorts δεν υποστηρίζουν άμεση λήψη.");
-                } else {
-                    setDlState("error", "Δεν βρέθηκε video στη σελίδα.");
-                }
+                setDlState("error", res.platform === "youtube"
+                    ? "Τα YouTube Shorts δεν υποστηρίζουν άμεση λήψη."
+                    : "Δεν βρέθηκε URL. Κάνε scroll σε ένα reel και ξαναπάτα."
+                );
                 return;
             }
-
-            const filename = "reel_" + Date.now() + ".mp4";
-            chrome.downloads.download({ url: res.src, filename }, (id) => {
-                if (chrome.runtime.lastError || id === undefined) {
-                    setDlState("error", "Αποτυχία λήψης.");
-                } else {
-                    setDlState("success", "Η λήψη ξεκίνησε!");
-                }
-            });
+            startDownload(res.src);
         });
     });
 });
+
+function startDownload(url) {
+    const filename = "reel_" + Date.now() + ".mp4";
+    chrome.downloads.download({ url, filename }, (id) => {
+        if (chrome.runtime.lastError || id === undefined) {
+            setDlState("error", "Αποτυχία λήψης.");
+        } else {
+            setDlState("success", "Η λήψη ξεκίνησε!");
+        }
+    });
+}
 
 function setDlState(state, msg) {
     dlBtn.classList.remove("loading");

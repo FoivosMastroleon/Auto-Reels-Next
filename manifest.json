@@ -23,10 +23,13 @@
       "run_at": "document_idle"
     }
   ],
-  "permissions": ["storage", "scripting", "webNavigation", "downloads", "tabs"],
+  "permissions": ["storage", "scripting", "webNavigation", "downloads", "tabs", "webRequest"],
+  "web_accessible_resources": [{ "resources": ["injected.js"], "matches": ["https://www.instagram.com/*", "https://www.facebook.com/*"] }],
   "host_permissions": [
     "https://www.youtube.com/*",
     "https://www.instagram.com/*",
-    "https://www.facebook.com/*"
+    "https://www.facebook.com/*",
+    "https://*.cdninstagram.com/*",
+    "https://*.fbcdn.net/*"
   ]
 }

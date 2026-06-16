@@ -39,6 +39,37 @@ chrome.storage.onChanged.addListener((changes) => {
     }
 });
 
+// Cache the most recent video CDN URL per tab (for Instagram/Facebook download)
+const tabVideoCache = new Map();
+
+chrome.webRequest.onBeforeRequest.addListener(
+    ({ url, tabId }) => {
+        if (tabId < 0) return;
+        const path = url.split("?")[0];
+        if (!path.endsWith(".mp4")) return;
+        // Strip byte-range query params so chrome.downloads fetches the full file
+        try {
+            const u = new URL(url);
+            u.searchParams.delete("bytestart");
+            u.searchParams.delete("byteend");
+            tabVideoCache.set(tabId, u.toString());
+        } catch {
+            tabVideoCache.set(tabId, url);
+        }
+    },
+    {
+        urls: ["*://*.cdninstagram.com/*", "*://*.fbcdn.net/*"],
+        types: ["media", "xmlhttprequest", "other"]
+    }
+);
+
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+    if (msg.type === "get_cached_video") {
+        sendResponse({ url: tabVideoCache.get(msg.tabId) || null });
+        return true;
+    }
+});
+
 function injectIfReels(details) {
     const url = details.url;
     if (
