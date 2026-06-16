@@ -1,22 +1,32 @@
 {
   "manifest_version": 3,
-  "name": "Auto YouTube Shorts Next",
-  "version": "1.0",
-  "description": "Automatically navigates to the next YouTube Short when the current one ends.",
+  "name": "Auto Reels Next",
+  "version": "2.0",
+  "description": "Automatically navigates to the next Short/Reel on YouTube, Instagram, and Facebook.",
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Auto Shorts Next"
+    "default_title": "Auto Reels Next"
   },
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["https://www.youtube.com/shorts/*"],
+      "matches": [
+        "https://www.youtube.com/shorts/*",
+        "https://www.instagram.com/reels/*",
+        "https://www.instagram.com/reel/*",
+        "https://www.facebook.com/reels/*",
+        "https://www.facebook.com/reel/*"
+      ],
       "js": ["content.js"],
       "run_at": "document_idle"
     }
   ],
   "permissions": ["storage", "scripting", "webNavigation"],
-  "host_permissions": ["https://www.youtube.com/*"]
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "https://www.instagram.com/*",
+    "https://www.facebook.com/*"
+  ]
 }

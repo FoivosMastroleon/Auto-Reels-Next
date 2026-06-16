@@ -1,8 +1,8 @@
-function drawIcon(enabled) {
+function drawIcon(anyEnabled) {
     const canvas = new OffscreenCanvas(32, 32);
     const ctx = canvas.getContext("2d");
 
-    ctx.fillStyle = enabled ? "#ff0000" : "#888888";
+    ctx.fillStyle = anyEnabled ? "#ff0000" : "#888888";
     ctx.beginPath();
     ctx.arc(16, 16, 15, 0, Math.PI * 2);
     ctx.fill();
@@ -20,21 +20,45 @@ function drawIcon(enabled) {
     return ctx.getImageData(0, 0, 32, 32);
 }
 
-function updateIcon(enabled) {
-    chrome.action.setIcon({ imageData: { 32: drawIcon(enabled) } });
+function updateIcon() {
+    chrome.storage.local.get({
+        enabled_youtube: true,
+        enabled_instagram: true,
+        enabled_facebook: true
+    }, (res) => {
+        const anyEnabled = res.enabled_youtube || res.enabled_instagram || res.enabled_facebook;
+        chrome.action.setIcon({ imageData: { 32: drawIcon(anyEnabled) } });
+    });
 }
 
-chrome.storage.local.get({ enabled: true }, ({ enabled }) => updateIcon(enabled));
+updateIcon();
+
 chrome.storage.onChanged.addListener((changes) => {
-    if (changes.enabled) updateIcon(changes.enabled.newValue);
+    if ("enabled_youtube" in changes || "enabled_instagram" in changes || "enabled_facebook" in changes) {
+        updateIcon();
+    }
 });
 
-// Re-inject content script on SPA navigation to Shorts
-chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
-    if (!details.url.includes("/shorts/")) return;
+function injectIfReels(details) {
+    const url = details.url;
+    if (
+        url.includes("youtube.com/shorts/") ||
+        url.includes("instagram.com/reels") ||
+        url.includes("instagram.com/reel/") ||
+        url.includes("facebook.com/reels") ||
+        url.includes("facebook.com/reel/")
+    ) {
+        chrome.scripting.executeScript({
+            target: { tabId: details.tabId },
+            files: ["content.js"]
+        });
+    }
+}
 
-    chrome.scripting.executeScript({
-        target: { tabId: details.tabId },
-        files: ["content.js"]
-    });
-}, { url: [{ hostEquals: "www.youtube.com" }] });
+chrome.webNavigation.onHistoryStateUpdated.addListener(injectIfReels, {
+    url: [
+        { hostEquals: "www.youtube.com" },
+        { hostEquals: "www.instagram.com" },
+        { hostEquals: "www.facebook.com" }
+    ]
+});
