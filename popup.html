@@ -131,6 +131,39 @@
       transition: all 0.15s;
     }
     .reset-btn:hover { color: #aaa; border-color: #444; }
+
+    /* Download button */
+    .download-btn {
+      width: 100%;
+      padding: 9px 0;
+      background: #1a2e1a;
+      border: 1px solid #2a5a2a;
+      border-radius: 7px;
+      color: #4caf50;
+      font-size: 13px;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .download-btn:hover { background: #223522; border-color: #4caf50; }
+    .download-btn:active { opacity: 0.8; }
+    .download-btn.loading { opacity: 0.6; cursor: default; }
+    .download-btn.error { background: #2e1a1a; border-color: #993333; color: #cc4444; }
+    .download-btn.success { background: #1a2e1a; border-color: #4caf50; color: #81c784; }
+
+    .download-status {
+      font-size: 10px;
+      color: #555;
+      margin-top: 6px;
+      text-align: center;
+      min-height: 14px;
+    }
+    .download-status.err { color: #cc4444; }
   </style>
 </head>
 <body>
@@ -170,6 +203,18 @@
       </div>
       <button class="reset-btn" id="reset">Μηδενισμός</button>
     </div>
+  </section>
+
+  <section>
+    <div class="section-title">Λήψη</div>
+    <button class="download-btn" id="download-btn">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M8 12l-5-5h3V2h4v5h3L8 12z"/>
+        <rect x="2" y="13" width="12" height="1.5" rx="0.75"/>
+      </svg>
+      Κατέβασε το τρέχον Reel
+    </button>
+    <div class="download-status" id="dl-status"></div>
   </section>
 
   <script src="popup.js"></script>

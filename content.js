@@ -72,6 +72,27 @@ function scrollToNext(v) {
 let triggeredSrc = null;
 let triggerTime = 0;
 
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+    if (msg.type !== "download") return;
+
+    const v = getActiveVideo() || document.querySelector("video");
+    const src = v?.currentSrc || v?.src || null;
+
+    if (!src) {
+        sendResponse({ ok: false, error: "no_video" });
+        return true;
+    }
+
+    if (src.startsWith("blob:")) {
+        // YouTube Shorts uses MediaSource — blob URLs cannot be downloaded
+        sendResponse({ ok: false, error: "blob_unsupported" });
+        return true;
+    }
+
+    sendResponse({ ok: true, src });
+    return true;
+});
+
 setInterval(() => {
     if (!platformEnabled) return;
 

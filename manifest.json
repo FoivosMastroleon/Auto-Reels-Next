@@ -23,7 +23,7 @@
       "run_at": "document_idle"
     }
   ],
-  "permissions": ["storage", "scripting", "webNavigation"],
+  "permissions": ["storage", "scripting", "webNavigation", "downloads", "tabs"],
   "host_permissions": [
     "https://www.youtube.com/*",
     "https://www.instagram.com/*",
