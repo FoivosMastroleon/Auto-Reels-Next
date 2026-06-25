@@ -164,6 +164,70 @@
       min-height: 14px;
     }
     .download-status.err { color: #cc4444; }
+
+    /* Voice section */
+    .voice-input {
+      width: 100%;
+      padding: 7px 10px;
+      background: #2a2a2a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #ccc;
+      font-size: 12px;
+      font-family: inherit;
+      margin-top: 8px;
+      box-sizing: border-box;
+    }
+    .voice-input:focus { outline: none; border-color: #ff4444; }
+    .voice-input::placeholder { color: #444; }
+
+    .voice-select {
+      width: 100%;
+      padding: 7px 10px;
+      background: #2a2a2a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #ccc;
+      font-size: 12px;
+      font-family: inherit;
+      margin-top: 6px;
+      box-sizing: border-box;
+      appearance: none;
+      cursor: pointer;
+    }
+    .voice-select:focus { outline: none; border-color: #ff4444; }
+
+    .voice-save {
+      margin-top: 8px;
+      width: 100%;
+      padding: 7px 0;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 6px;
+      color: #888;
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .voice-save:hover { color: #ff4444; border-color: #ff4444; }
+
+    .voice-status {
+      font-size: 10px;
+      margin-top: 6px;
+      color: #444;
+      min-height: 13px;
+    }
+    .voice-status.ok  { color: #4caf50; }
+    .voice-status.err { color: #cc4444; }
+
+    .cmd-list {
+      margin-top: 8px;
+      font-size: 10px;
+      color: #444;
+      line-height: 1.7;
+    }
+    .cmd-list span { color: #ff4444; }
   </style>
 </head>
 <body>
@@ -202,6 +266,23 @@
         <div class="counter-label">σύνολο</div>
       </div>
       <button class="reset-btn" id="reset">Μηδενισμός</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">Φωνητικές Εντολές</div>
+    <div class="row">
+      <span class="platform-name">Ενεργοποίηση</span>
+      <label class="switch"><input type="checkbox" id="tog-voice"><span class="slider"></span></label>
+    </div>
+    <select class="voice-select" id="voice-lang">
+      <option value="el-GR">Γλώσσα: Ελληνικά</option>
+      <option value="en-US">Γλώσσα: English</option>
+    </select>
+    <div class="voice-status" id="voice-status"></div>
+    <div class="cmd-list">
+      <span>επόμενο</span> · <span>σταμάτα</span> · <span>ξεκίνα</span><br>
+      <span>κατέβασε</span> · <span>γρηγορότερα</span> · <span>κανονικά</span>
     </div>
   </section>
 

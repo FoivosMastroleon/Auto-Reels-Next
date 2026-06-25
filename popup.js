@@ -5,13 +5,20 @@ chrome.storage.local.get({
     enabled_instagram: true,
     enabled_facebook: true,
     speed: 1,
-    counter: 0
+    counter: 0,
+    voice_enabled: false,
+    trigger_word: "computer",
+    voice_lang: "el-GR",
 }, (res) => {
     for (const p of platforms) {
         document.getElementById(`tog-${p}`).checked = res[`enabled_${p}`];
     }
     setActiveSpeed(res.speed);
     document.getElementById("counter").textContent = res.counter;
+
+    document.getElementById("tog-voice").checked   = res.voice_enabled;
+    document.getElementById("voice-lang").value    = res.voice_lang;
+    if (res.voice_enabled) setVoiceStatus("ok");
 });
 
 // Platform toggles
@@ -42,15 +49,33 @@ document.getElementById("reset").addEventListener("click", () => {
     document.getElementById("counter").textContent = "0";
 });
 
-// Live counter update (ενημερώνεται αν αλλάξει ενώ το popup είναι ανοιχτό)
 chrome.storage.onChanged.addListener((changes) => {
     if (changes.counter) {
         document.getElementById("counter").textContent = changes.counter.newValue;
     }
 });
 
-// Download current reel
-const dlBtn = document.getElementById("download-btn");
+// ── Voice settings ──────────────────────────────────────────────────────────
+
+document.getElementById("tog-voice").addEventListener("change", (e) => {
+    const on = e.target.checked;
+    chrome.storage.local.set({ voice_enabled: on });
+    setVoiceStatus(on ? "ok" : "");
+});
+
+document.getElementById("voice-lang").addEventListener("change", (e) => {
+    chrome.storage.local.set({ voice_lang: e.target.value });
+});
+
+function setVoiceStatus(state, msg = "") {
+    const el = document.getElementById("voice-status");
+    el.className = "voice-status" + (state === "ok" ? " ok" : state === "err" ? " err" : "");
+    el.textContent = state === "ok" ? "🎙 Ενεργό — πες το trigger word" : msg;
+}
+
+// ── Download ────────────────────────────────────────────────────────────────
+
+const dlBtn    = document.getElementById("download-btn");
 const dlStatus = document.getElementById("dl-status");
 
 dlBtn.addEventListener("click", () => {
