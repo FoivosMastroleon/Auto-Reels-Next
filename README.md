@@ -33,8 +33,9 @@ Enable the microphone toggle in the popup. The first time, a banner will appear 
 | Greek | English | Action |
 |-------|---------|--------|
 | επόμενο / επόμενη | next | Go to next reel |
-| σταμάτα / παύση | stop / pause | Pause |
-| ξεκίνα / συνέχισε / παίξε | start / play | Resume |
+| προηγούμενο / πίσω | previous / back | Go to previous reel |
+| σταμάτα / παύση | stop / pause | Pause (auto-next blocked until you resume) |
+| ξεκίνα / συνέχισε / παίξε | start / play | Resume current reel |
 | γρηγορότερα / γρήγορα | faster | Set speed to 2× |
 | κανονικά / αργά | normal / slower | Set speed to 1× |
 

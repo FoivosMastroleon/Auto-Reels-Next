@@ -92,6 +92,35 @@
         }));
     }
 
+    function scrollToPrev(v) {
+        if (platform === 'youtube') {
+            const btn = document.querySelector(
+                '#navigation-button-up button, ' +
+                '#navigation-button-up yt-icon-button'
+            );
+            if (btn) { btn.click(); return; }
+            document.dispatchEvent(new KeyboardEvent('keydown', {
+                key: 'ArrowUp', keyCode: 38, which: 38, bubbles: true, cancelable: true
+            }));
+            return;
+        }
+        let el = v.parentElement;
+        while (el && el !== document.body) {
+            const { overflow, overflowY } = window.getComputedStyle(el);
+            if (/(auto|scroll)/.test(overflow + overflowY)) {
+                el.scrollBy({ top: -el.clientHeight, behavior: "smooth" });
+                return;
+            }
+            el = el.parentElement;
+        }
+        document.dispatchEvent(new WheelEvent("wheel", {
+            deltaY: -window.innerHeight,
+            bubbles: true,
+            cancelable: true,
+            view: window
+        }));
+    }
+
     let triggeredSrc = null;
     let triggerTime = 0;
 
@@ -106,6 +135,7 @@
 
     const VOICE_CMDS = {
         next:     ['επόμενο', 'επόμενη', 'next'],
+        previous: ['προηγούμενο', 'πίσω', 'previous', 'back'],
         stop:     ['σταμάτα', 'stop', 'παύση', 'pause'],
         start:    ['ξεκίνα', 'start', 'play', 'παίξε', 'συνέχισε'],
         faster:   ['γρηγορότερα', 'faster', 'γρήγορα'],
@@ -125,6 +155,7 @@
     let voiceLastError = null;
     let voiceLastActioned = null;
     let voiceLang = 'el-GR';
+    let voiceActionAt = 0; // timestamp of last fired action — global cooldown
 
     // Reset abort loop when user switches back to this tab
     document.addEventListener('visibilitychange', () => {
@@ -172,8 +203,10 @@
 
             showVoiceBadge('👂 ' + transcript + (action ? '  ✓' : ''), isFinal ? 1500 : 0);
 
-            if (action && action !== voiceLastActioned) {
+            const now = Date.now();
+            if (action && action !== voiceLastActioned && now - voiceActionAt > 1000) {
                 voiceLastActioned = action;
+                voiceActionAt = now;
                 runVoiceAction(action);
                 setTimeout(() => { voiceLastActioned = null; }, 1500);
             }
@@ -283,13 +316,30 @@
         showVoiceBadge('⚡ ' + action + '…', 3000);
         switch (action) {
             case 'next': {
-                const v = getActiveVideo();
-                if (v) { v.pause(); triggerTime = 0; scrollToNext(v); }
+                const v = getActiveVideo() || getVisibleVideo();
+                if (v) { v.pause(); triggerTime = Date.now(); scrollToNext(v); }
                 showVoiceBadge('▶▶ Επόμενο', 1500);
+                break;
+            }
+            case 'previous': {
+                const v = getActiveVideo() || getVisibleVideo();
+                if (v) { v.pause(); triggerTime = Date.now() + 10000; scrollToPrev(v); }
+                // Poll until new video is ready, then restart from beginning
+                let polls = 0;
+                const prevPoll = setInterval(() => {
+                    const nv = getVisibleVideo();
+                    if ((nv && nv.readyState >= 2) || ++polls >= 15) {
+                        clearInterval(prevPoll);
+                        if (nv) { nv.currentTime = 0; nv.play().catch(() => {}); }
+                        triggerTime = Date.now();
+                    }
+                }, 150);
+                showVoiceBadge('◀◀ Προηγούμενο', 1500);
                 break;
             }
             case 'stop': {
                 document.querySelectorAll('video').forEach(v => v.pause());
+                triggerTime = Date.now() + 3600000; // block auto-next until explicit 'start'
                 chrome.storage.local.set({ [enabledKey]: false });
                 showVoiceBadge('⏸ Pause', 1500);
                 break;
@@ -297,6 +347,7 @@
             case 'start': {
                 const vPlay = getVisibleVideo();
                 if (vPlay) vPlay.play();
+                triggerTime = Date.now(); // reset: allow auto-next after cooldown
                 chrome.storage.local.set({ [enabledKey]: true });
                 showVoiceBadge('▶ Play', 1500);
                 break;
